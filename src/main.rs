@@ -54,22 +54,36 @@ fn offset<T>(n: u32) -> *const c_void {
 
 // == // Generate your VAO here
 unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>) -> u32 {
-    // Implement me!
-
-    // Also, feel free to delete comments :)
-
     // This should:
     // * Generate a VAO and bind it
+    let mut vao = 0;
+    gl::GenVertexArrays(1, &mut vao);
+    gl::BindVertexArray(vao);
+    
     // * Generate a VBO and bind it
+    let mut vbo=0;
+    gl::GenBuffers(1, &mut vbo);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+
     // * Fill it with data
+    gl::BufferData(gl::ARRAY_BUFFER, byte_size_of_array(vertices), pointer_to_array(vertices), gl::STATIC_DRAW);
+    
     // * Configure a VAP for the data and enable it
+    //If your buffer only contains a single entry type, you can pass in 0 for stride
+    gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
+    gl::EnableVertexAttribArray(0);
+   
     // * Generate a IBO and bind it
+    let mut ibo =0;
+    gl::GenBuffers(1, &mut ibo);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo);
+
     // * Fill it with data
+    gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, byte_size_of_array(indices), pointer_to_array(indices), gl::STATIC_DRAW);
+
     // * Return the ID of the VAO
-
-    0
+    vao
 }
-
 
 fn main() {
     // Set up the necessary objects to deal with windows and event handling
@@ -131,8 +145,14 @@ fn main() {
         }
 
         // == // Set up your VAO around here
+        let ver:Vec<f32>=vec![
+            -0.6, -0.6, 0.0,
+            0.6, -0.6, 0.0, 
+            0.0, 0.6, 0.0,
+        ];
+        let ind:Vec<u32>=vec![0,1,2];
 
-        let my_vao = unsafe { 1337 };
+        let my_vao = unsafe { create_vao(&ver, &ind) };
 
 
         // == // Set up your shaders here
@@ -144,13 +164,14 @@ fn main() {
         // This snippet is not enough to do the exercise, and will need to be modified (outside
         // of just using the correct path), but it only needs to be called once
 
-        /*
+        
         let simple_shader = unsafe {
             shader::ShaderBuilder::new()
-                .attach_file("./path/to/simple/shader.file")
+                .attach_file("./shaders/simple.vert")
+                .attach_file("./shaders/simple.frag")
                 .link()
         };
-        */
+        unsafe { simple_shader.activate() };
 
 
         // Used to demonstrate keyboard handling for exercise 2.
@@ -215,10 +236,9 @@ fn main() {
                 gl::ClearColor(0.035, 0.046, 0.078, 1.0); // night sky, full opacity
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-
                 // == // Issue the necessary gl:: commands to draw your scene here
-
-
+                gl::BindVertexArray(my_vao);
+                gl::DrawElements(gl::TRIANGLES, ind.len() as i32, gl::UNSIGNED_INT, ptr::null());
 
             }
 
