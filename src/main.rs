@@ -53,7 +53,7 @@ fn offset<T>(n: u32) -> *const c_void {
 
 
 // == // Generate your VAO here
-unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>) -> u32 {
+unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>) -> u32 {
     // This should:
     // * Generate a VAO and bind it
     let mut vao = 0;
@@ -80,6 +80,18 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>) -> u32 {
 
     // * Fill it with data
     gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, byte_size_of_array(indices), pointer_to_array(indices), gl::STATIC_DRAW);
+
+     // Create a VBO and bind it for color 
+     let mut vbo_color = 0;
+    gl::GenBuffers(1, &mut vbo_color);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vbo_color);
+    //Fill it with data
+    gl::BufferData(gl::ARRAY_BUFFER, byte_size_of_array(colors), pointer_to_array(colors), gl::STATIC_DRAW);
+
+    // Configure a VAP for the color and enable it
+    gl::VertexAttribPointer(1, 4, gl::FLOAT, gl::FALSE, 0, ptr::null());
+    gl::EnableVertexAttribArray(1);
+
 
     // * Return the ID of the VAO
     vao
@@ -145,62 +157,88 @@ fn main() {
         }
 
         // == // Set up your VAO around here
-        //Task 1c
-        /*let ver:Vec<f32>=vec![
+
+        // Vertex positions for three triangles
+        let ver: Vec<f32> = vec![
             // Triangle 1
-            -0.2, 0.4, 0.0,
-            0.2, 0.4, 0.0,
-            0.0, 0.8, 0.0,
+            -0.3, -0.9, -0.5,  // Vertex 1
+            0.6, -0.9, -0.5,  // Vertex 2
+            0.15,  0.7, -0.5,  // Vertex 3
 
             // Triangle 2
-            0.2, -0.4, 0.0,
-            0.6, -0.4, 0.0,
-            0.4, 0.0, 0.0,
-
+            0.2, -0.7, 0.3,  // Vertex 1
+            0.8, -0.7, 0.3,  // Vertex 2
+            0.5,  0.3, 0.3,  // Vertex 3
+            
             // Triangle 3
-            -0.4, 0.0, 0.0,
-            0.0, 0.0, 0.0,
-            -0.2, 0.4, 0.0,
-
-            // Triangle 4
-            0.0, 0.0, 0.0,
-            0.4, 0.0, 0.0,
-            0.2, 0.4, 0.0,
-
-            // Triangle 5
-            -0.6, -0.4, 0.0,
-            -0.2, -0.4, 0.0,
-            -0.4, 0.0, 0.0,
-
-            let ind:Vec<u32>=vec![
-            0,1,2,
-            3,4,5,
-            6,7,8,
-            9,10,11,
-            12,13,14];
-        ];*/
-
-        //Task 2
-        /* 
-        let ver:Vec<f32>=vec![
-            0.6,-0.8,-1.2,//v0
-            0.0,0.4,0.0, //v1
-            -0.8,-0.2,1.2, //v2
+            -0.6, -0.8, 0.5,  // Vertex 1
+            0.4, -0.8, 0.5,  // Vertex 2
+           -0.1,  0.2, 0.5,  // Vertex 3
+       
         ];
-        let ind:Vec<u32>=vec![
-            0,1,2,];
-        */
-        let ver:Vec<f32>=vec![
-            0.6,-0.8,0.2,
-            0.0,0.4,0.0,
-            -0.8,-0.2,0.2, 
+
+        // Vertex colors for each vertex
+        let col: Vec<f32> = vec![
+             // Triangle 1
+             1.0, 0.0, 0.0, 0.3, // Red
+             1.0, 0.0, 0.0, 0.3, // Red
+             1.0, 0.0, 0.0, 0.3, // Red
+ 
+             // Triangle 2
+             0.0, 1.0, 1.0, 0.3, // Cyan
+             0.0, 1.0, 1.0, 0.3, // Cyan
+             0.0, 1.0, 1.0, 0.3, // Cyan
+            
+ 
+             // Triangle 3
+             0.5, 0.5, 0.0, 0.3, // Yellow
+             0.5, 0.5, 0.0, 0.3, // Yellow
+             0.5, 0.5, 0.0, 0.3, // Yellow
+            
         ];
-        let ind:Vec<u32>=vec![
-            0,1,2];
         
-    
+        
+        let ind:Vec<u32>=vec![
+            6,7,8,
+            3,4,5,
+            0,1,2,
+            ];
+        
+        
+        //example color data
+        let blue = vec![0.0, 0.0, 1.0, 1.0];
+        let green = vec![0.0, 1.0, 0.0, 1.0];
+        let red = vec![1.0, 0.0, 0.0, 1.0];
+        let transparent_white = vec![1.0, 1.0, 1.0, 0.5];
+        let red_triangle1 = vec![
+            1.0, 0.0, 0.0, 0.3,
+            1.0, 0.0, 0.0, 0.3,
+            1.0, 0.0, 0.0, 0.3,
+        ];
+        let yellow_triangle2 = vec![
+            0.5, 0.5, 0.0, 0.4,
+            0.5, 0.5, 0.0, 0.4,
+            0.5, 0.5, 0.0, 0.4,
+        ];
+        let cyan_triangle1 = vec![
+            0.0, 1.0, 1.0, 0.6,
+            0.0, 1.0, 1.0, 0.6,
+            0.0, 1.0, 1.0, 0.6,
+        ];
 
-        let my_vao = unsafe { create_vao(&ver, &ind) };
+
+
+        //Assignment 2 Task 1 
+        /* 
+        let col: Vec<f32> = vec![
+            1.0, 0.0, 0.0, 1.0, // Red
+            0.0, 1.0, 0.0, 1.0, // Green
+            0.0, 0.0, 1.0, 1.0, // Blue
+        ];
+        */
+    
+        // Create the VAO with vertex, index, and (color data (Assignment 2))
+        let my_vao = unsafe { create_vao(&ver, &ind, &col) };
 
 
         // == // Set up your shaders here
