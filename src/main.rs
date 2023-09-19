@@ -161,19 +161,19 @@ fn main() {
         // Vertex positions for three triangles
         let ver: Vec<f32> = vec![
             // Triangle 1
-            -0.3, -0.9, -0.5,  // Vertex 1
-            0.6, -0.9, -0.5,  // Vertex 2
-            0.15,  0.7, -0.5,  // Vertex 3
+            -0.3, -0.9, 0.5,  // Vertex 1
+            0.6, -0.9, 0.5,  // Vertex 2
+            0.15,  0.7, 0.5,  // Vertex 3
 
             // Triangle 2
-            0.2, -0.7, 0.3,  // Vertex 1
-            0.8, -0.7, 0.3,  // Vertex 2
-            0.5,  0.3, 0.3,  // Vertex 3
+            0.2, -0.7, -0.5,  // Vertex 1
+            0.8, -0.7, -0.5,  // Vertex 2
+            0.5,  0.3, -0.5,  // Vertex 3
             
             // Triangle 3
-            -0.6, -0.8, 0.5,  // Vertex 1
-            0.4, -0.8, 0.5,  // Vertex 2
-           -0.1,  0.2, 0.5,  // Vertex 3
+            -0.6, -0.8, 0.3,  // Vertex 1
+            0.4, -0.8, 0.3,  // Vertex 2
+           -0.1,  0.2, 0.3,  // Vertex 3
        
         ];
 
@@ -199,43 +199,11 @@ fn main() {
         
         
         let ind:Vec<u32>=vec![
+            0,1,2,
             6,7,8,
             3,4,5,
-            0,1,2,
             ];
-        
-        
-        //example color data
-        let blue = vec![0.0, 0.0, 1.0, 1.0];
-        let green = vec![0.0, 1.0, 0.0, 1.0];
-        let red = vec![1.0, 0.0, 0.0, 1.0];
-        let transparent_white = vec![1.0, 1.0, 1.0, 0.5];
-        let red_triangle1 = vec![
-            1.0, 0.0, 0.0, 0.3,
-            1.0, 0.0, 0.0, 0.3,
-            1.0, 0.0, 0.0, 0.3,
-        ];
-        let yellow_triangle2 = vec![
-            0.5, 0.5, 0.0, 0.4,
-            0.5, 0.5, 0.0, 0.4,
-            0.5, 0.5, 0.0, 0.4,
-        ];
-        let cyan_triangle1 = vec![
-            0.0, 1.0, 1.0, 0.6,
-            0.0, 1.0, 1.0, 0.6,
-            0.0, 1.0, 1.0, 0.6,
-        ];
 
-
-
-        //Assignment 2 Task 1 
-        /* 
-        let col: Vec<f32> = vec![
-            1.0, 0.0, 0.0, 1.0, // Red
-            0.0, 1.0, 0.0, 1.0, // Green
-            0.0, 0.0, 1.0, 1.0, // Blue
-        ];
-        */
     
         // Create the VAO with vertex, index, and (color data (Assignment 2))
         let my_vao = unsafe { create_vao(&ver, &ind, &col) };

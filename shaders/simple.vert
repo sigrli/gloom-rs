@@ -6,11 +6,14 @@ in vec4 color;   // Vertex color
 out vec4 fragColor; // Output color to the fragment shader
 
 
+mat4 i_m = mat4(1); //identity matrix
+
+
 void main()
 {
-    gl_Position = vec4(position, 1.0f);
 
-    // Task 1ii Assignment 2
+    gl_Position = vec4(position, 1.0f) * i_m;
+
     // Pass the color to the fragment shader
     fragColor = color;
     
