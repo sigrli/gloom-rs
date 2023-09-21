@@ -11,11 +11,13 @@ uniform float time;
 // identity matrix
 mat4 i_m = mat4(1.0);
 
-//modify one at a time 
-i_m[0][0] = time;
+
  
 void main()
 {
+    //modify one at a time 
+    i_m[1][3] = time;
+
     gl_Position = i_m * vec4(position, 1.0f);
     // Pass the color to the fragment shader
     fragColor = color;
