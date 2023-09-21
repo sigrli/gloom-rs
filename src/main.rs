@@ -288,15 +288,15 @@ fn main() {
             
             //Assignment 2 Task 3b
 
-            let time_location = unsafe {
-                simple_shader.get_uniform_location("time")
+            let matrix_location = unsafe {
+                simple_shader.get_uniform_location("identityM")
             };
             
-            // Calculate the value based on elapsed time
-            let elapsed_sin = (elapsed as f32).sin();
+            let matrix = glm::Mat4:: identity();
 
             // Set the time value
-            unsafe { gl::Uniform1f(time_location, elapsed_sin) };
+            unsafe { gl::Uniform4f(matrix_location, matrix.as_ptr()) };
+            
 
 
             unsafe {
