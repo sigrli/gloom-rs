@@ -15,6 +15,7 @@ use std::sync::{Mutex, Arc, RwLock};
 mod shader;
 mod util;
 
+use gl::{GetUniformLocation, GetSubroutineUniformLocation};
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
 use glutin::event_loop::ControlFlow;
 
@@ -227,6 +228,7 @@ fn main() {
         };
         unsafe { simple_shader.activate() };
 
+        
 
         // Used to demonstrate keyboard handling for exercise 2.
         let mut _arbitrary_number = 0.0; // feel free to remove
@@ -283,6 +285,18 @@ fn main() {
             }
 
             // == // Please compute camera transforms here (exercise 2 & 3)
+            
+            //Assignment 2 Task 3b
+
+            let time_location = unsafe {
+                simple_shader.get_uniform_location("time")
+            };
+            
+            // Calculate the value based on elapsed time
+            let elapsed_sin = (elapsed as f32).sin();
+
+            // Set the time value
+            unsafe { gl::Uniform1f(time_location, elapsed_sin) };
 
 
             unsafe {

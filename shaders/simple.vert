@@ -5,15 +5,20 @@ in vec4 color;   // Vertex color
 
 out vec4 fragColor; // Output color to the fragment shader
 
+//Assignment 2 Task 3b
+uniform float time;
 
-mat4 i_m = mat4(1); //identity matrix
+// identity matrix
+mat4 i_m = mat4(1.0);
 
 
+ 
 void main()
 {
+    //modify one at a time 
+    i_m[1][3] = time;
 
-    gl_Position = vec4(position, 1.0f) * i_m;
-
+    gl_Position = i_m * vec4(position, 1.0f);
     // Pass the color to the fragment shader
     fragColor = color;
     
