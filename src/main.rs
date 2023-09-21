@@ -286,7 +286,7 @@ fn main() {
 
             // == // Please compute camera transforms here (exercise 2 & 3)
             
-            //Assignment 2 Task 3b
+            //Assignment 2 Task 4
 
             let matrix_location = unsafe {
                 simple_shader.get_uniform_location("identityM")
@@ -294,8 +294,9 @@ fn main() {
             
             let matrix = glm::Mat4:: identity();
 
+
             // Set the time value
-            unsafe { gl::Uniform4f(matrix_location, matrix.as_ptr()) };
+            unsafe { gl::Uniform4fv(matrix_location, 1, matrix.as_ptr()) };
             
 
 
