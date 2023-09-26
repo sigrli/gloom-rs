@@ -203,7 +203,7 @@ fn main() {
             0,1,2,
             6,7,8,
             3,4,5,
-            ];
+        ];
 
     
         // Create the VAO with vertex, index, and (color data (Assignment 2))
@@ -229,9 +229,12 @@ fn main() {
         unsafe { simple_shader.activate() };
 
         
-
         // Used to demonstrate keyboard handling for exercise 2.
-        let mut _arbitrary_number = 0.0; // feel free to remove
+        let mut cam_pos_x  = 0.0;
+        let mut cam_pos_y = 0.0;
+        let mut cam_pos_z = 0.0;
+        let mut cam_rot_x = 0.0;
+        let mut cam_rot_y = 0.0;
 
 
         // The main rendering loop
@@ -262,12 +265,41 @@ fn main() {
                         // The `VirtualKeyCode` enum is defined here:
                         //    https://docs.rs/winit/0.25.0/winit/event/enum.VirtualKeyCode.html
 
-                        VirtualKeyCode::A => {
-                            _arbitrary_number += delta_time;
-                        }
                         VirtualKeyCode::D => {
-                            _arbitrary_number -= delta_time;
+                            cam_pos_x += delta_time * 5.0;
                         }
+                        VirtualKeyCode::A => {
+                            cam_pos_x -= delta_time * 5.0;
+                        }
+
+                        VirtualKeyCode::W => {
+                            cam_pos_y += delta_time * 5.0;
+                        }
+                        VirtualKeyCode::S => {
+                            cam_pos_y -= delta_time * 5.0;
+                        }
+
+                        VirtualKeyCode::Space => {
+                            cam_pos_z += delta_time * 5.0;
+                        }
+                        VirtualKeyCode::LShift => {
+                            cam_pos_z -= delta_time * 5.0;
+                        }
+
+                        VirtualKeyCode::Right => {
+                            cam_rot_y += delta_time;
+                        }
+                        VirtualKeyCode::Left => {
+                            cam_rot_y -= delta_time;
+                        }
+
+                        VirtualKeyCode::Up => {
+                            cam_rot_x -= delta_time;
+                        }
+                        VirtualKeyCode::Down => {
+                            cam_rot_x += delta_time;
+                        }
+
 
 
                         // default handler:
@@ -286,18 +318,22 @@ fn main() {
 
             // == // Please compute camera transforms here (exercise 2 & 3)
             
+            
             //Assignment 2 Task 4
 
-            let matrix_location = unsafe {
-                simple_shader.get_uniform_location("identityM")
-            };
-            
-            let matrix = glm::Mat4:: identity();
+            let perspective: glm::Mat4 = glm::perspective(
+                window_aspect_ratio,
+                70.0f32.to_radians(),
+                1.0,
+                1000.0,
+            );
 
-
-            // Set the time value
-            unsafe { gl::Uniform4fv(matrix_location, 1, matrix.as_ptr()) };
-            
+            let mut matrix = glm::Mat4:: identity();
+            matrix = glm::translation(&glm::vec3(0.0, 0.0, -2.0)) * matrix;
+            matrix = glm::translation(&glm::vec3(cam_pos_x,cam_pos_y,cam_pos_z)) * matrix;
+            matrix = glm::rotation(cam_rot_y, &glm::vec3(0.0, 0.0, 1.0)) * matrix;
+            matrix = glm::rotation(cam_rot_x, &glm::vec3(1.0, 0.0, 0.0)) * matrix;
+            matrix = perspective * matrix;
 
 
             unsafe {
@@ -305,10 +341,11 @@ fn main() {
                 gl::ClearColor(0.035, 0.046, 0.078, 1.0); // night sky, full opacity
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
+                gl::UniformMatrix4fv(simple_shader.get_uniform_location("identityM"), 1, gl::FALSE, matrix.as_ptr());
+
                 // == // Issue the necessary gl:: commands to draw your scene here
                 gl::BindVertexArray(my_vao);
                 gl::DrawElements(gl::TRIANGLES, ind.len() as i32, gl::UNSIGNED_INT, ptr::null());
-
             }
 
             // Display the new color buffer on the display

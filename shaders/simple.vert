@@ -9,7 +9,7 @@ uniform mat4 identityM;
 
 void main()
 {
-    gl_Position = vec4(position, 1.0f) * identityM;
+    gl_Position = identityM * vec4(position, 1.0f);
 
     // Pass the color to the fragment shader
     fragColor = color;
