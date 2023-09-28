@@ -14,6 +14,7 @@ use std::sync::{Mutex, Arc, RwLock};
 
 mod shader;
 mod util;
+mod mesh;
 
 use gl::{GetUniformLocation, GetSubroutineUniformLocation};
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
@@ -54,13 +55,15 @@ fn offset<T>(n: u32) -> *const c_void {
 
 
 // == // Generate your VAO here
-unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>) -> u32 {
+unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>, normal_vec: &Vec<f32>,) -> u32 {
     // This should:
     // * Generate a VAO and bind it
     let mut vao = 0;
     gl::GenVertexArrays(1, &mut vao);
     gl::BindVertexArray(vao);
     
+
+
     // * Generate a VBO and bind it
     let mut vbo=0;
     gl::GenBuffers(1, &mut vbo);
@@ -74,6 +77,8 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>)
     gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
     gl::EnableVertexAttribArray(0);
    
+
+
     // * Generate a IBO and bind it
     let mut ibo =0;
     gl::GenBuffers(1, &mut ibo);
@@ -82,8 +87,10 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>)
     // * Fill it with data
     gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, byte_size_of_array(indices), pointer_to_array(indices), gl::STATIC_DRAW);
 
-     // Create a VBO and bind it for color 
-     let mut vbo_color = 0;
+    
+    
+    // Create a VBO and bind it for color 
+    let mut vbo_color = 0;
     gl::GenBuffers(1, &mut vbo_color);
     gl::BindBuffer(gl::ARRAY_BUFFER, vbo_color);
     //Fill it with data
@@ -92,6 +99,18 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>)
     // Configure a VAP for the color and enable it
     gl::VertexAttribPointer(1, 4, gl::FLOAT, gl::FALSE, 0, ptr::null());
     gl::EnableVertexAttribArray(1);
+
+
+
+    //include normal vectors mesh
+    let mut vbo_mesh = 0;
+    gl::GenBuffers(1, &mut vbo_mesh);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vbo_mesh);
+    gl::BufferData(gl::ARRAY_BUFFER, byte_size_of_array(normal_vec), pointer_to_array(normal_vec), gl::STATIC_DRAW);
+    // Configure a VAP for the normal vector and enable it
+    gl::VertexAttribPointer(2, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
+    gl::EnableVertexAttribArray(2);
+
 
 
     // * Return the ID of the VAO
@@ -159,13 +178,14 @@ fn main() {
 
         // == // Set up your VAO around here
 
+        /*
         // Vertex positions for three triangles
         let ver: Vec<f32> = vec![
             // Triangle 1
             -0.3, -0.9, 0.5,  // Vertex 1
             0.6, -0.9, 0.5,  // Vertex 2
             0.15,  0.7, 0.5,  // Vertex 3
-
+            
             // Triangle 2
             0.2, -0.7, -0.5,  // Vertex 1
             0.8, -0.7, -0.5,  // Vertex 2
@@ -174,40 +194,42 @@ fn main() {
             // Triangle 3
             -0.6, -0.8, 0.3,  // Vertex 1
             0.4, -0.8, 0.3,  // Vertex 2
-           -0.1,  0.2, 0.3,  // Vertex 3
-       
-        ];
-
-        // Vertex colors for each vertex
-        let col: Vec<f32> = vec![
-             // Triangle 1
-             1.0, 0.0, 0.0, 0.3, // Red
-             1.0, 0.0, 0.0, 0.3, // Red
-             1.0, 0.0, 0.0, 0.3, // Red
- 
-             // Triangle 2
-             0.0, 1.0, 1.0, 0.3, // Cyan
-             0.0, 1.0, 1.0, 0.3, // Cyan
-             0.0, 1.0, 1.0, 0.3, // Cyan
+            -0.1,  0.2, 0.3,  // Vertex 3
             
- 
-             // Triangle 3
-             0.5, 0.5, 0.0, 0.3, // Yellow
-             0.5, 0.5, 0.0, 0.3, // Yellow
-             0.5, 0.5, 0.0, 0.3, // Yellow
+            ];
             
-        ];
-        
-        
-        let ind:Vec<u32>=vec![
-            0,1,2,
-            6,7,8,
-            3,4,5,
-        ];
-
-    
+            // Vertex colors for each vertex
+            let col: Vec<f32> = vec![
+            // Triangle 1
+            1.0, 0.0, 0.0, 0.9, // Red
+            1.0, 0.0, 0.0, 0.9, // Red
+            1.0, 0.0, 0.0, 0.9, // Red
+            
+            // Triangle 2
+            0.0, 1.0, 1.0, 0.9, // Cyan
+            0.0, 1.0, 1.0, 0.9, // Cyan
+            0.0, 1.0, 1.0, 0.9, // Cyan
+            
+            
+            // Triangle 3
+            0.5, 0.5, 0.0, 0.9, // Yellow
+            0.5, 0.5, 0.0, 0.9, // Yellow
+            0.5, 0.5, 0.0, 0.9, // Yellow
+            
+            ];
+            
+            
+            let ind:Vec<u32>=vec![
+                0, 1, 2,
+                6, 7, 8,
+                3, 4, 5,
+            ];
+        */
+                
+        let mesh = mesh::Terrain::load("./resources/lunarsurface.obj");
+            
         // Create the VAO with vertex, index, and (color data (Assignment 2))
-        let my_vao = unsafe { create_vao(&ver, &ind, &col) };
+        let my_vao = unsafe { create_vao(&mesh.vertices, &mesh.indices, &mesh.colors, &mesh.normals) };
 
 
         // == // Set up your shaders here
@@ -266,24 +288,24 @@ fn main() {
                         //    https://docs.rs/winit/0.25.0/winit/event/enum.VirtualKeyCode.html
 
                         VirtualKeyCode::D => {
-                            cam_pos_x += delta_time * 5.0;
+                            cam_pos_x += delta_time * 20.0;
                         }
                         VirtualKeyCode::A => {
-                            cam_pos_x -= delta_time * 5.0;
+                            cam_pos_x -= delta_time * 20.0;
                         }
 
                         VirtualKeyCode::W => {
-                            cam_pos_y += delta_time * 5.0;
+                            cam_pos_y += delta_time * 20.0;
                         }
                         VirtualKeyCode::S => {
-                            cam_pos_y -= delta_time * 5.0;
+                            cam_pos_y -= delta_time * 20.0;
                         }
 
                         VirtualKeyCode::Space => {
-                            cam_pos_z += delta_time * 5.0;
+                            cam_pos_z += delta_time * 20.0;
                         }
                         VirtualKeyCode::LShift => {
-                            cam_pos_z -= delta_time * 5.0;
+                            cam_pos_z -= delta_time * 20.0;
                         }
 
                         VirtualKeyCode::Right => {
@@ -294,10 +316,10 @@ fn main() {
                         }
 
                         VirtualKeyCode::Up => {
-                            cam_rot_x -= delta_time;
+                            cam_rot_x += delta_time;
                         }
                         VirtualKeyCode::Down => {
-                            cam_rot_x += delta_time;
+                            cam_rot_x -= delta_time;
                         }
 
 
@@ -331,7 +353,7 @@ fn main() {
             let mut matrix = glm::Mat4:: identity();
             matrix = glm::translation(&glm::vec3(0.0, 0.0, -2.0)) * matrix;
             matrix = glm::translation(&glm::vec3(cam_pos_x,cam_pos_y,cam_pos_z)) * matrix;
-            matrix = glm::rotation(cam_rot_y, &glm::vec3(0.0, 0.0, 1.0)) * matrix;
+            matrix = glm::rotation(cam_rot_y, &glm::vec3(0.0, 1.0, 0.0)) * matrix;
             matrix = glm::rotation(cam_rot_x, &glm::vec3(1.0, 0.0, 0.0)) * matrix;
             matrix = perspective * matrix;
 
@@ -345,7 +367,7 @@ fn main() {
 
                 // == // Issue the necessary gl:: commands to draw your scene here
                 gl::BindVertexArray(my_vao);
-                gl::DrawElements(gl::TRIANGLES, ind.len() as i32, gl::UNSIGNED_INT, ptr::null());
+                gl::DrawElements(gl::TRIANGLES, mesh.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
             }
 
             // Display the new color buffer on the display
