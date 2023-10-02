@@ -16,7 +16,7 @@ mod shader;
 mod util;
 mod mesh;
 
-use gl::{GetUniformLocation, GetSubroutineUniformLocation};
+use gl::{GetUniformLocation, GetSubroutineUniformLocation, BindVertexArray};
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
 use glutin::event_loop::ControlFlow;
 
@@ -111,7 +111,14 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>,
     gl::VertexAttribPointer(2, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
     gl::EnableVertexAttribArray(2);
 
-
+    //helicopter
+    let mut vbo_heli = 0;
+    gl::GenBuffers(1, &mut vbo_heli);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vbo_heli);
+    gl::BufferData(gl::ARRAY_BUFFER, byte_size_of_array(normal_vec), pointer_to_array(normal_vec), gl::STATIC_DRAW);
+    // Configure a VAP for the helicopter and enable it
+    gl::VertexAttribPointer(3, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
+    gl::EnableVertexAttribArray(3);
 
     // * Return the ID of the VAO
     vao
@@ -178,58 +185,17 @@ fn main() {
 
         // == // Set up your VAO around here
 
-        /*
-        // Vertex positions for three triangles
-        let ver: Vec<f32> = vec![
-            // Triangle 1
-            -0.3, -0.9, 0.5,  // Vertex 1
-            0.6, -0.9, 0.5,  // Vertex 2
-            0.15,  0.7, 0.5,  // Vertex 3
-            
-            // Triangle 2
-            0.2, -0.7, -0.5,  // Vertex 1
-            0.8, -0.7, -0.5,  // Vertex 2
-            0.5,  0.3, -0.5,  // Vertex 3
-            
-            // Triangle 3
-            -0.6, -0.8, 0.3,  // Vertex 1
-            0.4, -0.8, 0.3,  // Vertex 2
-            -0.1,  0.2, 0.3,  // Vertex 3
-            
-            ];
-            
-            // Vertex colors for each vertex
-            let col: Vec<f32> = vec![
-            // Triangle 1
-            1.0, 0.0, 0.0, 0.9, // Red
-            1.0, 0.0, 0.0, 0.9, // Red
-            1.0, 0.0, 0.0, 0.9, // Red
-            
-            // Triangle 2
-            0.0, 1.0, 1.0, 0.9, // Cyan
-            0.0, 1.0, 1.0, 0.9, // Cyan
-            0.0, 1.0, 1.0, 0.9, // Cyan
-            
-            
-            // Triangle 3
-            0.5, 0.5, 0.0, 0.9, // Yellow
-            0.5, 0.5, 0.0, 0.9, // Yellow
-            0.5, 0.5, 0.0, 0.9, // Yellow
-            
-            ];
-            
-            
-            let ind:Vec<u32>=vec![
-                0, 1, 2,
-                6, 7, 8,
-                3, 4, 5,
-            ];
-        */
-                
         let mesh = mesh::Terrain::load("./resources/lunarsurface.obj");
+        //load helicopter
+        let helicopter = mesh::Helicopter::load("./resources/helicopter.obj"); 
             
-        // Create the VAO with vertex, index, and (color data (Assignment 2))
+        // Create the VAO for terrain
         let my_vao = unsafe { create_vao(&mesh.vertices, &mesh.indices, &mesh.colors, &mesh.normals) };
+        //Create the vao for the helicopter
+        let vao_body = unsafe{create_vao(&helicopter.body.vertices, &helicopter.body.indices, &helicopter.body.normals, &helicopter.body.colors)};
+        let vao_door = unsafe {create_vao(&helicopter.door.vertices, &helicopter.door.indices, &helicopter.door.normals, &helicopter.door.colors)};
+        let vao_main_rotor = unsafe{create_vao(&helicopter.main_rotor.vertices, &helicopter.main_rotor.indices, &helicopter.main_rotor.normals, &helicopter.main_rotor.colors)};
+        let vao_tail_rotor = unsafe{create_vao(&helicopter.tail_rotor.vertices, &helicopter.tail_rotor.indices, &helicopter.tail_rotor.normals, &helicopter.tail_rotor.colors)};
 
 
         // == // Set up your shaders here
@@ -288,10 +254,10 @@ fn main() {
                         //    https://docs.rs/winit/0.25.0/winit/event/enum.VirtualKeyCode.html
 
                         VirtualKeyCode::D => {
-                            cam_pos_x += delta_time * 20.0;
+                            cam_pos_x -= delta_time * 20.0;
                         }
                         VirtualKeyCode::A => {
-                            cam_pos_x -= delta_time * 20.0;
+                            cam_pos_x += delta_time * 20.0;
                         }
 
                         VirtualKeyCode::W => {
@@ -367,7 +333,19 @@ fn main() {
 
                 // == // Issue the necessary gl:: commands to draw your scene here
                 gl::BindVertexArray(my_vao);
+                //bind the parts of the helicopter
+                gl::BindVertexArray(vao_body);
+                gl::BindVertexArray(vao_door);
+                gl::BindVertexArray(vao_main_rotor);
+                gl::BindVertexArray(vao_tail_rotor);
+
                 gl::DrawElements(gl::TRIANGLES, mesh.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+                //draw the helicopter
+                gl::DrawElements(gl::TRIANGLES, helicopter.body.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+                gl::DrawElements(gl::TRIANGLES, helicopter.door.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+                gl::DrawElements(gl::TRIANGLES, helicopter.main_rotor.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+                gl::DrawElements(gl::TRIANGLES, helicopter.tail_rotor.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+
             }
 
             // Display the new color buffer on the display

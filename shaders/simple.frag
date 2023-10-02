@@ -6,8 +6,13 @@ in vec4 fragNormal;
 
 out vec4 color;
 
+uniform vec3 lightDirection = normalize(vec3(0.8, -0.5, 0.6));
+
 void main()
 {
-    color = fragNormal;
-    
+    // Lambertian lighting model
+    float diffuseFactor = max(0.0, dot(normalize(fragNormal.xyz), -lightDirection));
+    vec3 finalColor = fragColor.xyz * diffuseFactor;
+
+    color = vec4(finalColor, 1.0);
 }
