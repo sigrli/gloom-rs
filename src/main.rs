@@ -15,6 +15,8 @@ use std::sync::{Mutex, Arc, RwLock};
 mod shader;
 mod util;
 mod mesh;
+mod scene_graph;
+use scene_graph::SceneNode;
 
 use gl::{GetUniformLocation, GetSubroutineUniformLocation, BindVertexArray};
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
@@ -117,7 +119,7 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>,
     gl::BindBuffer(gl::ARRAY_BUFFER, vbo_heli);
     gl::BufferData(gl::ARRAY_BUFFER, byte_size_of_array(normal_vec), pointer_to_array(normal_vec), gl::STATIC_DRAW);
     // Configure a VAP for the helicopter and enable it
-    gl::VertexAttribPointer(3, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
+    gl::VertexAttribPointer(2, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
     gl::EnableVertexAttribArray(3);
 
     // * Return the ID of the VAO
@@ -329,22 +331,27 @@ fn main() {
                 gl::ClearColor(0.035, 0.046, 0.078, 1.0); // night sky, full opacity
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-                gl::UniformMatrix4fv(simple_shader.get_uniform_location("identityM"), 1, gl::FALSE, matrix.as_ptr());
+               gl::UniformMatrix4fv(simple_shader.get_uniform_location("identityM"), 1, gl::FALSE, matrix.as_ptr());
+              
 
                 // == // Issue the necessary gl:: commands to draw your scene here
                 gl::BindVertexArray(my_vao);
-                //bind the parts of the helicopter
-                gl::BindVertexArray(vao_body);
-                gl::BindVertexArray(vao_door);
-                gl::BindVertexArray(vao_main_rotor);
-                gl::BindVertexArray(vao_tail_rotor);
-
                 gl::DrawElements(gl::TRIANGLES, mesh.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
-                //draw the helicopter
+
+                //bind and draw the parts of the helicopter
+                gl::BindVertexArray(vao_body);
                 gl::DrawElements(gl::TRIANGLES, helicopter.body.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+
+                gl::BindVertexArray(vao_door);
                 gl::DrawElements(gl::TRIANGLES, helicopter.door.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+
+                gl::BindVertexArray(vao_main_rotor);
                 gl::DrawElements(gl::TRIANGLES, helicopter.main_rotor.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+
+                gl::BindVertexArray(vao_tail_rotor);
                 gl::DrawElements(gl::TRIANGLES, helicopter.tail_rotor.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+
+
 
             }
 
