@@ -218,23 +218,44 @@ fn main() {
         let mut helicopter_tailrotor_node = SceneNode::from_vao(vao_tail_rotor, helicopter.tail_rotor.indices.len() as i32);
         
         //attach helicopter nodes to the root for the helicopter
+        helicopter_body_node.add_child(&helicopter_door_node);
+        helicopter_body_node.add_child(&helicopter_mainrotor_node);
+        helicopter_body_node.add_child(&helicopter_tailrotor_node);
+
         helicopter_root_node.add_child(&helicopter_body_node);
-        helicopter_root_node.add_child(&helicopter_door_node);
-        helicopter_root_node.add_child(&helicopter_mainrotor_node);
-        helicopter_root_node.add_child(&helicopter_tailrotor_node);
         
         // attach the helicopter root to the root node
         root_node.add_child(&helicopter_root_node);
 
-        //helicoper debug?
+        //helicopter debug?
         helicopter_root_node.print();
 
         // Define the reference point for the tail rotor
         helicopter_tailrotor_node.reference_point = glm::vec3(0.35, 2.3, 10.4);
-        helicopter_mainrotor_node.reference_point = glm::vec3(0.0,2.3,0.0);
+        //helicopter_mainrotor_node.reference_point = glm::vec3(0.0,2.3,0.0);
         //helicopter_body_node.reference_point = glm::vec3(0.35,2.0,0.4);
         //helicopter_door_node.reference_point = glm::vec3(1.0,1.5,0.0);
-   
+
+        // //TASK 6
+        //  // Create a vector to store helicopter scene nodes
+        // let mut helicopters: Vec<Node> = Vec::new();
+        // // Create a vector to store terrain scene nodes
+        // let mut terrains: Vec<Node> = Vec::new();
+
+        // // Instantiate 5 helicopters and terrains
+        // for i in 0..5 {
+        //     // Create a new terrain scene node
+        //     let terrain_node = SceneNode::from_vao(my_vao, mesh.indices.len() as i32);
+        //     // Add terrain_node to terrains vector
+        //     terrains.push(terrain_node);
+
+        //     // Create a new helicopter scene node
+        //     let mut helicopter_root_node = SceneNode::new();
+        //     // Create and configure other helicopter nodes (body, door, rotor, etc.)
+        //     // ...
+        //     // Add helicopter_root_node to helicopters vector
+        //     helicopters.push(helicopter_root_node);
+        // }    
 
         // == // Set up your shaders here
 
@@ -254,6 +275,8 @@ fn main() {
         };
         unsafe { simple_shader.activate() };
 
+
+
         // Used to demonstrate keyboard handling for exercise 2.
         let mut cam_pos_x  = 0.0;
         let mut cam_pos_y = 0.0;
@@ -261,6 +284,7 @@ fn main() {
         let mut cam_rot_x = 0.0;
         let mut cam_rot_y = 0.0;
 
+       
 
         // The main rendering loop
         let first_frame_time = std::time::Instant::now();
@@ -343,7 +367,7 @@ fn main() {
                 *delta = (0.0, 0.0); // reset when done
             }
 
-            // SCENE GRAPHS Task 2 c)
+            // SCENE GRAPHS 
             
             
             // draw scene function
@@ -375,11 +399,24 @@ fn main() {
                 // check if VAO is valid
                 if node.vao_id != 0 {
                     //combine the view projection and model matrix
+                    //let mvp_matrix = view_projection_matrix * model_matrix;
+                    //gl::UniformMatrix4fv(simple_shader.get_uniform_location("identityM"), 1, gl::FALSE, mvp_matrix.as_ptr());
+
+                    // Calculate the Model View Projection matrix
                     let mvp_matrix = view_projection_matrix * model_matrix;
 
+                    //Task 5 b)
+                    // Pass the MVP matrix to the shader
+                    unsafe {
+                        let mvp_location = gl::GetUniformLocation(simple_shader.program_id, "MVP\0".as_ptr() as *const i8);
+                        gl::UniformMatrix4fv(mvp_location, 1, gl::FALSE, mvp_matrix.as_ptr());
+                    }
 
-                    gl::UniformMatrix4fv(simple_shader.get_uniform_location("identityM"), 1, gl::FALSE, mvp_matrix.as_ptr());
-
+                    // Pass the Model matrix to the shader
+                    unsafe {
+                        let model_location = gl::GetUniformLocation(simple_shader.program_id, "model\0".as_ptr() as *const i8);
+                        gl::UniformMatrix4fv(model_location, 1, gl::FALSE, model_matrix.as_ptr());
+                    }
 
                     // Bind the VAO and draw it
                     gl::BindVertexArray(node.vao_id);
@@ -394,12 +431,12 @@ fn main() {
                 }
             }
 
+
+
             // == // Please compute camera transforms here (exercise 2 & 3)
             let identity_matrix = glm::Mat4:: identity();
 
             
-            //Assignment 2 Task 4
-
             let perspective: glm::Mat4 = glm::perspective(
                 window_aspect_ratio,
                 70.0f32.to_radians(),
@@ -416,24 +453,25 @@ fn main() {
 
             //Spin the mainrotor and tail
             helicopter_mainrotor_node.rotation.y = elapsed*9.0;
-            helicopter_tailrotor_node.rotation.y = elapsed*9.0;
+            //DENNE ER LITT RAR
+            //helicopter_tailrotor_node.rotation.z = elapsed*5.0; 
 
             //animated path
             let toolbox: Heading = toolbox::simple_heading_animation(elapsed);
 
-            helicopter_body_node.position.x = toolbox.x;
-            helicopter_body_node.position.z = toolbox.z;
-            helicopter_body_node.rotation.x = toolbox.pitch;
-            helicopter_body_node.rotation.y = toolbox.yaw;
-            helicopter_body_node.rotation.z = toolbox.roll;
+            helicopter_root_node.position.z = toolbox.z;
+            helicopter_root_node.rotation.x = toolbox.pitch;
+            helicopter_root_node.rotation.y = toolbox.yaw;
+            helicopter_root_node.rotation.z = toolbox.roll;
+            helicopter_root_node.position.x = toolbox.x;
 
             // Apply the same transformations to the rotor nodes
-            helicopter_mainrotor_node.position.x = toolbox.x;
-            helicopter_mainrotor_node.position.z = toolbox.z;
-           
+            // helicopter_mainrotor_node.position.x = toolbox.x;
+            // helicopter_mainrotor_node.position.z = toolbox.z;
+            // helicopter_tailrotor_node.position.x = toolbox.x;
+            // helicopter_tailrotor_node.position.z = toolbox.z;
 
-            helicopter_tailrotor_node.position.x = toolbox.x;
-            helicopter_tailrotor_node.position.z = toolbox.z;
+
           
 
             unsafe {
