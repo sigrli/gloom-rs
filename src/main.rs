@@ -61,7 +61,6 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>,
     gl::BindVertexArray(vao);
     
 
-
     // * Generate a VBO and bind it
     let mut vbo=0;
     gl::GenBuffers(1, &mut vbo);
@@ -100,7 +99,7 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>, colors: &Vec<f32>,
 
 
 
-    //include normal vectors mesh
+    //include normal vectors mesh (terrain)
     let mut vbo_mesh = 0;
     gl::GenBuffers(1, &mut vbo_mesh);
     gl::BindBuffer(gl::ARRAY_BUFFER, vbo_mesh);
@@ -192,59 +191,69 @@ fn main() {
         // Create the VAO for terrain
         let my_vao = unsafe { create_vao(&mesh.vertices, &mesh.indices, &mesh.colors, &mesh.normals) };
         //Create the vao for the helicopter
-        let vao_body = unsafe{create_vao(&helicopter.body.vertices, &helicopter.body.indices, &helicopter.body.normals, &helicopter.body.colors)};
-        let vao_door = unsafe {create_vao(&helicopter.door.vertices, &helicopter.door.indices, &helicopter.door.normals, &helicopter.door.colors)};
-        let vao_main_rotor = unsafe{create_vao(&helicopter.main_rotor.vertices, &helicopter.main_rotor.indices, &helicopter.main_rotor.normals, &helicopter.main_rotor.colors)};
-        let vao_tail_rotor = unsafe{create_vao(&helicopter.tail_rotor.vertices, &helicopter.tail_rotor.indices, &helicopter.tail_rotor.normals, &helicopter.tail_rotor.colors)};
+        let vao_body = unsafe{create_vao(&helicopter.body.vertices, &helicopter.body.indices, &helicopter.body.colors, &helicopter.body.normals)};
+        let vao_door = unsafe {create_vao(&helicopter.door.vertices, &helicopter.door.indices, &helicopter.door.colors, &helicopter.door.normals)};
+        let vao_main_rotor = unsafe{create_vao(&helicopter.main_rotor.vertices, &helicopter.main_rotor.indices, &helicopter.main_rotor.colors, &helicopter.main_rotor.normals)};
+        let vao_tail_rotor = unsafe{create_vao(&helicopter.tail_rotor.vertices, &helicopter.tail_rotor.indices, &helicopter.tail_rotor.colors, &helicopter.tail_rotor.normals)};
 
         //Assingment 3 task 2b) == Scene Nodes
 
         //root node for the scene
-        let mut scene_root = SceneNode::new();
+        let mut root_node = SceneNode::new();
 
         //SceneNode for terrain
         let mut terrain_node = SceneNode::from_vao(my_vao, mesh.indices.len() as i32);
+        
+        //attach terrain node to the root node
+        root_node.add_child(&terrain_node);
 
+        //SceneNode for helicopter
+        let mut helicopter_root_node = SceneNode::new();
         //SceneNode for each helicopter part
         let mut helicopter_body_node = SceneNode::from_vao(vao_body, helicopter.body.indices.len() as i32);
         let mut helicopter_door_node = SceneNode::from_vao(vao_door, helicopter.door.indices.len() as i32);
         let mut helicopter_mainrotor_node = SceneNode::from_vao(vao_main_rotor, helicopter.main_rotor.indices.len() as i32);
         let mut helicopter_tailrotor_node = SceneNode::from_vao(vao_tail_rotor, helicopter.tail_rotor.indices.len() as i32);
-
-        //attach terrain node to the scene root
-        scene_root.add_child(&terrain_node);
-
+        
         //attach helicopter nodes to the root for the helicopter
-        let mut helicopter_root_node = SceneNode::new();
         helicopter_root_node.add_child(&helicopter_body_node);
         helicopter_root_node.add_child(&helicopter_door_node);
         helicopter_root_node.add_child(&helicopter_mainrotor_node);
         helicopter_root_node.add_child(&helicopter_tailrotor_node);
-        // attach the helicopter root to the scene root
-        scene_root.add_child(&helicopter_root_node);
+        
+        // attach the helicopter root to the root node
+        root_node.add_child(&helicopter_root_node);
 
-        //helicoper  draw?
+        //helicoper debug?
         helicopter_root_node.print();
+
+        // Define the reference point for the tail rotor
+        helicopter_tailrotor_node.reference_point = glm::vec3(0.35, 2.3, 10.4);
+        helicopter_mainrotor_node.reference_point = glm::vec3(0.0,2.3,0.0);
+        helicopter_mainrotor_node.position.x = 10.;
+        helicopter_mainrotor_node.rotation.y = 1.;
+        //helicopter_body_node.reference_point = glm::vec3(0.35,2.0,0.4);
+        //helicopter_door_node.reference_point = glm::vec3(1.0,1.5,0.0);
+
+
+
+        
         //position and rotation for terrain and helicopter
-        //trenger vi dette?
-        
-        terrain_node.position = glm::vec3(0.0, 0.0, 0.0); 
-        terrain_node.rotation = glm::vec3(0.0, 0.0, 0.0); 
+        //trenger vi dette 2 b 3
+        // terrain_node.position = glm::vec3(0.0, 0.0, 0.0); 
+        // terrain_node.rotation = glm::vec3(0.0, 0.0, 0.0); 
 
-        helicopter_body_node.position = glm::vec3(0.0, 10.0, 0.0); 
-        helicopter_body_node.rotation = glm::vec3(0.0, 0.0, 0.0); 
+        // helicopter_body_node.position = glm::vec3(0.0, 10.0, 0.0); 
+        // helicopter_body_node.rotation = glm::vec3(0.0, 0.0, 0.0); 
 
-        helicopter_door_node.position = glm::vec3(0.0, 10.0, 0.0); 
-        helicopter_door_node.rotation = glm::vec3(0.0, 0.0, 0.0);
+        // helicopter_door_node.position = glm::vec3(0.0, 10.0, 0.0); 
+        // helicopter_door_node.rotation = glm::vec3(0.0, 0.0, 0.0);
 
-        helicopter_mainrotor_node.position = glm::vec3(0.0, 10.0, 0.0); 
-        helicopter_mainrotor_node.rotation = glm::vec3(0.0, 0.0, 0.0);
+        // helicopter_mainrotor_node.position = glm::vec3(0.0, 10.0, 0.0); 
+        // helicopter_mainrotor_node.rotation = glm::vec3(0.0, 0.0, 0.0);
 
-        helicopter_tailrotor_node.position = glm::vec3(0.0, 10.0, 0.0); 
-        helicopter_tailrotor_node.rotation = glm::vec3(0.0, 0.0, 0.0); 
-        
-
-
+        // helicopter_tailrotor_node.position = glm::vec3(0.0, 10.0, 0.0); 
+        // helicopter_tailrotor_node.rotation = glm::vec3(0.0, 0.0, 0.0); 
         //end task 2b)
 
         // == // Set up your shaders here
@@ -309,17 +318,19 @@ fn main() {
                         }
 
                         VirtualKeyCode::W => {
-                            cam_pos_y += delta_time * 20.0;
+                            cam_pos_z += (delta_time * 20.0) * (-cam_rot_y as f32).cos();
+                            cam_pos_x += (delta_time * 20.0) * (-cam_rot_y as f32).sin();
                         }
                         VirtualKeyCode::S => {
-                            cam_pos_y -= delta_time * 20.0;
+                            cam_pos_z -= (delta_time * 20.0) * (cam_rot_y as f32).cos();
+                            cam_pos_x += (delta_time * 20.0) * (cam_rot_y as f32).sin();
                         }
 
                         VirtualKeyCode::Space => {
-                            cam_pos_z += delta_time * 20.0;
+                            cam_pos_y -= delta_time * 20.0;
                         }
                         VirtualKeyCode::LShift => {
-                            cam_pos_z -= delta_time * 20.0;
+                            cam_pos_y += delta_time * 20.0;
                         }
 
                         VirtualKeyCode::Right => {
@@ -330,10 +341,10 @@ fn main() {
                         }
 
                         VirtualKeyCode::Up => {
-                            cam_rot_x += delta_time;
+                            cam_rot_x -= delta_time;
                         }
                         VirtualKeyCode::Down => {
-                            cam_rot_x -= delta_time;
+                            cam_rot_x += delta_time;
                         }
 
 
@@ -353,6 +364,7 @@ fn main() {
             }
 
             // SCENE GRAPHS Task 2 c)
+
             
             // draw scene function
             unsafe fn draw_scene(
@@ -362,24 +374,31 @@ fn main() {
                 transformation_so_far: &glm::Mat4,
             ) {
                 
-                // calculate the transformation matrix
-                /* 
+
+                // Calculate the transformation matrix
+                let translation_matrix = glm::translation(&(-node.reference_point)); // Move reference point to the origin
+                let rotation_matrix_x = glm::rotation(node.rotation.x, &glm::vec3(1.0, 0.0, 0.0));
+                let rotation_matrix_y = glm::rotation(node.rotation.y, &glm::vec3(0.0, 1.0, 0.0));
+                let rotation_matrix_z = glm::rotation(node.rotation.z, &glm::vec3(0.0, 0.0, 1.0));
+                let translation_matrix_back = glm::translation(&node.reference_point); // Move back to the original position
+
                 let model_matrix = transformation_so_far
                     * glm::translation(&node.position)
-                    * glm::rotation(node.rotation.x, &glm::vec3(1.0, 0.0, 0.0))
-                    * glm::rotation(node.rotation.y, &glm::vec3(0.0, 1.0, 0.0))
-                    * glm::rotation(node.rotation.z, &glm::vec3(0.0, 0.0, 1.0));
-                */
+                    * translation_matrix_back
+                    * rotation_matrix_x
+                    * rotation_matrix_y
+                    * rotation_matrix_z
+                    * translation_matrix
+                    ;
+                
                 
                 // check if VAO is valid
                 if node.vao_id != 0 {
-                    //set the transformation matrix
-                    //let model_view_projection = view_projection_matrix * model_matrix;
+                    //combine the view projection and model matrix
+                    let mvp_matrix = view_projection_matrix * model_matrix;
 
-                    // Combine camera and transformation matrices
-                    //let mvp_matrix = camera_matrix * transformation_so_far; 
 
-                    gl::UniformMatrix4fv(simple_shader.get_uniform_location("identityM"), 1, gl::FALSE, view_projection_matrix.as_ptr());
+                    gl::UniformMatrix4fv(simple_shader.get_uniform_location("identityM"), 1, gl::FALSE, mvp_matrix.as_ptr());
 
 
                     // Bind the VAO and draw it
@@ -390,13 +409,14 @@ fn main() {
                 // Recurse
                 for &child in &node.children {
                     //draw_scene(&*child, view_projection_matrix, transformation_so_far);   
-                    draw_scene(simple_shader, &*child, view_projection_matrix, transformation_so_far);
+                    draw_scene(simple_shader, &*child, view_projection_matrix, &model_matrix);
             
                 }
             }
 
             // == // Please compute camera transforms here (exercise 2 & 3)
-            
+            let identity_matrix = glm::Mat4:: identity();
+
             
             //Assignment 2 Task 4
 
@@ -420,7 +440,7 @@ fn main() {
                 gl::ClearColor(0.035, 0.046, 0.078, 1.0); // night sky, full opacity
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-                draw_scene(&simple_shader, &scene_root, &matrix, &glm::Mat4::identity());
+                draw_scene(&simple_shader, &root_node, &matrix, &identity_matrix);
                 
                 
                 gl::UniformMatrix4fv(simple_shader.get_uniform_location("identityM"), 1, gl::FALSE, matrix.as_ptr());
@@ -451,9 +471,6 @@ fn main() {
 
             // Display the new color buffer on the display
             context.swap_buffers().unwrap(); // we use "double buffering" to avoid artifacts
-
-            
-
         }
     });
 
