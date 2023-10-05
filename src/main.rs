@@ -17,6 +17,8 @@ mod util;
 mod mesh;
 mod scene_graph;
 use scene_graph::SceneNode;
+mod toolbox;
+use toolbox::Heading;
 
 use gl::{GetUniformLocation, GetSubroutineUniformLocation, BindVertexArray};
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
@@ -230,31 +232,9 @@ fn main() {
         // Define the reference point for the tail rotor
         helicopter_tailrotor_node.reference_point = glm::vec3(0.35, 2.3, 10.4);
         helicopter_mainrotor_node.reference_point = glm::vec3(0.0,2.3,0.0);
-        helicopter_mainrotor_node.position.x = 10.;
-        helicopter_mainrotor_node.rotation.y = 1.;
         //helicopter_body_node.reference_point = glm::vec3(0.35,2.0,0.4);
         //helicopter_door_node.reference_point = glm::vec3(1.0,1.5,0.0);
-
-
-
-        
-        //position and rotation for terrain and helicopter
-        //trenger vi dette 2 b 3
-        // terrain_node.position = glm::vec3(0.0, 0.0, 0.0); 
-        // terrain_node.rotation = glm::vec3(0.0, 0.0, 0.0); 
-
-        // helicopter_body_node.position = glm::vec3(0.0, 10.0, 0.0); 
-        // helicopter_body_node.rotation = glm::vec3(0.0, 0.0, 0.0); 
-
-        // helicopter_door_node.position = glm::vec3(0.0, 10.0, 0.0); 
-        // helicopter_door_node.rotation = glm::vec3(0.0, 0.0, 0.0);
-
-        // helicopter_mainrotor_node.position = glm::vec3(0.0, 10.0, 0.0); 
-        // helicopter_mainrotor_node.rotation = glm::vec3(0.0, 0.0, 0.0);
-
-        // helicopter_tailrotor_node.position = glm::vec3(0.0, 10.0, 0.0); 
-        // helicopter_tailrotor_node.rotation = glm::vec3(0.0, 0.0, 0.0); 
-        //end task 2b)
+   
 
         // == // Set up your shaders here
 
@@ -364,7 +344,7 @@ fn main() {
             }
 
             // SCENE GRAPHS Task 2 c)
-
+            
             
             // draw scene function
             unsafe fn draw_scene(
@@ -384,11 +364,11 @@ fn main() {
 
                 let model_matrix = transformation_so_far
                     * glm::translation(&node.position)
-                    * translation_matrix_back
+                    * translation_matrix
                     * rotation_matrix_x
                     * rotation_matrix_y
                     * rotation_matrix_z
-                    * translation_matrix
+                    * translation_matrix_back
                     ;
                 
                 
@@ -434,6 +414,27 @@ fn main() {
             matrix = glm::rotation(cam_rot_x, &glm::vec3(1.0, 0.0, 0.0)) * matrix;
             matrix = perspective * matrix;
 
+            //Spin the mainrotor and tail
+            helicopter_mainrotor_node.rotation.y = elapsed*9.0;
+            helicopter_tailrotor_node.rotation.y = elapsed*9.0;
+
+            //animated path
+            let toolbox: Heading = toolbox::simple_heading_animation(elapsed);
+
+            helicopter_body_node.position.x = toolbox.x;
+            helicopter_body_node.position.z = toolbox.z;
+            helicopter_body_node.rotation.x = toolbox.pitch;
+            helicopter_body_node.rotation.y = toolbox.yaw;
+            helicopter_body_node.rotation.z = toolbox.roll;
+
+            // Apply the same transformations to the rotor nodes
+            helicopter_mainrotor_node.position.x = toolbox.x;
+            helicopter_mainrotor_node.position.z = toolbox.z;
+           
+
+            helicopter_tailrotor_node.position.x = toolbox.x;
+            helicopter_tailrotor_node.position.z = toolbox.z;
+          
 
             unsafe {
                 // Clear the color and depth buffers
