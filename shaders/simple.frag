@@ -11,8 +11,7 @@ uniform vec3 lightDirection = normalize(vec3(0.8, -0.5, 0.6));
 void main()
 {
     // Lambertian lighting model
-    //float diffuseFactor = max(0.0, dot(normalize(fragNormal.xyz), -lightDirection));
-    float diffuseFactor = max(0.0, dot(normalize(fragNormal), -lightDirection)); //removed xyz
+    float diffuseFactor = max(0.0, dot(normalize(fragNormal.xyz), -lightDirection));
 
     vec3 finalColor = fragColor.xyz * diffuseFactor;
 

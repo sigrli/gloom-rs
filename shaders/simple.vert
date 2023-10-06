@@ -15,24 +15,12 @@ uniform mat4 model; //model matrix
 
 void main()
 {
-   // gl_Position = identityM * vec4(position, 1.0f);
-    gl_Position = MVP * vec4(position, 1.0f);
 
-
-    // Pass the color to the fragment shader
+    gl_Position = MVP * vec4(position, 1.0);
     fragColor = color;
-
-    //fragNormal = normal_vec;
-    //fragNormal = mat3(identityM) * normal_vec;
-    fragNormal = mat3(model) * normal_vec;
-
-    
-    // mat3 normalMatrix = mat3(model); // extract the upper 3x3 part of model matrix
-    // vec3 modifiedNormal = normalize(normalMatrix * normal_vec); // multiply normal_vec with normal matrix to apply same rotation/scaling
-    // vec4 position4 = MVP * vec4(position, 1.0); //normalize result
-    // fragColor = vec4(modifiedNormal, 1.0); // pass modified normal to fragment shader
-    // gl_Position = position4;
-
-
-    
+    mat3 model_matrix_3 = mat3(model);
+    vec3 modified_matrix = model_matrix_3 * normal_vec;
+    vec3 normalized_modified_matrix = normalize(modified_matrix);
+    fragNormal = normalized_modified_matrix; 
+  
 }

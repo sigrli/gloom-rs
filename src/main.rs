@@ -205,57 +205,45 @@ fn main() {
 
         //SceneNode for terrain
         let mut terrain_node = SceneNode::from_vao(my_vao, mesh.indices.len() as i32);
+                
+        //SceneNode for helicopter
+        //let mut helicopter_root_node = SceneNode::new();
         
+        //helicopter debug?
+        //helicopter_root_node.print();
+
+        
+        //TASK 6
+        // Create a vector to store helicopter scene nodes
+        let mut helicopters: Vec<scene_graph::Node> = Vec::new();
+        // Create a vector to store terrain scene nodes
+        //let mut terrains: Vec<scene_graph::Node> = Vec::new();
+        
+        // Instantiate 5 helicopters and terrains
+        for i in 0..5 {
+            //SceneNode for each helicopter part
+            let mut helicopter_body_node = SceneNode::from_vao(vao_body, helicopter.body.indices.len() as i32);
+            let mut helicopter_door_node = SceneNode::from_vao(vao_door, helicopter.door.indices.len() as i32);
+            let mut helicopter_mainrotor_node = SceneNode::from_vao(vao_main_rotor, helicopter.main_rotor.indices.len() as i32);
+            let mut helicopter_tailrotor_node = SceneNode::from_vao(vao_tail_rotor, helicopter.tail_rotor.indices.len() as i32);
+            
+            // Define the reference point for the tail rotor
+            helicopter_tailrotor_node.reference_point = glm::vec3(0.35, 2.3, 10.4);
+
+            terrain_node.add_child(&helicopter_body_node);
+
+            //attach helicopter nodes to the root for the helicopter
+            helicopter_body_node.add_child(&helicopter_door_node);
+            helicopter_body_node.add_child(&helicopter_mainrotor_node);
+            helicopter_body_node.add_child(&helicopter_tailrotor_node);
+
+            helicopters.push(helicopter_body_node);
+
+        
+        }    
         //attach terrain node to the root node
         root_node.add_child(&terrain_node);
 
-        //SceneNode for helicopter
-        let mut helicopter_root_node = SceneNode::new();
-        //SceneNode for each helicopter part
-        let mut helicopter_body_node = SceneNode::from_vao(vao_body, helicopter.body.indices.len() as i32);
-        let mut helicopter_door_node = SceneNode::from_vao(vao_door, helicopter.door.indices.len() as i32);
-        let mut helicopter_mainrotor_node = SceneNode::from_vao(vao_main_rotor, helicopter.main_rotor.indices.len() as i32);
-        let mut helicopter_tailrotor_node = SceneNode::from_vao(vao_tail_rotor, helicopter.tail_rotor.indices.len() as i32);
-        
-        //attach helicopter nodes to the root for the helicopter
-        helicopter_body_node.add_child(&helicopter_door_node);
-        helicopter_body_node.add_child(&helicopter_mainrotor_node);
-        helicopter_body_node.add_child(&helicopter_tailrotor_node);
-
-        helicopter_root_node.add_child(&helicopter_body_node);
-        
-        // attach the helicopter root to the root node
-        root_node.add_child(&helicopter_root_node);
-
-        //helicopter debug?
-        helicopter_root_node.print();
-
-        // Define the reference point for the tail rotor
-        helicopter_tailrotor_node.reference_point = glm::vec3(0.35, 2.3, 10.4);
-        //helicopter_mainrotor_node.reference_point = glm::vec3(0.0,2.3,0.0);
-        //helicopter_body_node.reference_point = glm::vec3(0.35,2.0,0.4);
-        //helicopter_door_node.reference_point = glm::vec3(1.0,1.5,0.0);
-
-        // //TASK 6
-        //  // Create a vector to store helicopter scene nodes
-        // let mut helicopters: Vec<Node> = Vec::new();
-        // // Create a vector to store terrain scene nodes
-        // let mut terrains: Vec<Node> = Vec::new();
-
-        // // Instantiate 5 helicopters and terrains
-        // for i in 0..5 {
-        //     // Create a new terrain scene node
-        //     let terrain_node = SceneNode::from_vao(my_vao, mesh.indices.len() as i32);
-        //     // Add terrain_node to terrains vector
-        //     terrains.push(terrain_node);
-
-        //     // Create a new helicopter scene node
-        //     let mut helicopter_root_node = SceneNode::new();
-        //     // Create and configure other helicopter nodes (body, door, rotor, etc.)
-        //     // ...
-        //     // Add helicopter_root_node to helicopters vector
-        //     helicopters.push(helicopter_root_node);
-        // }    
 
         // == // Set up your shaders here
 
@@ -406,18 +394,13 @@ fn main() {
                     let mvp_matrix = view_projection_matrix * model_matrix;
 
                     //Task 5 b)
-                    // Pass the MVP matrix to the shader
-                    unsafe {
-                        let mvp_location = gl::GetUniformLocation(simple_shader.program_id, "MVP\0".as_ptr() as *const i8);
-                        gl::UniformMatrix4fv(mvp_location, 1, gl::FALSE, mvp_matrix.as_ptr());
-                    }
+                    // Pass the MVP and model matrix to the shader
+                 
+                    gl::UniformMatrix4fv(simple_shader.get_uniform_location("MVP"), 1, gl::FALSE, mvp_matrix.as_ptr());
+                    gl::UniformMatrix4fv(simple_shader.get_uniform_location("model"), 1, gl::FALSE, model_matrix.as_ptr());
 
-                    // Pass the Model matrix to the shader
-                    unsafe {
-                        let model_location = gl::GetUniformLocation(simple_shader.program_id, "model\0".as_ptr() as *const i8);
-                        gl::UniformMatrix4fv(model_location, 1, gl::FALSE, model_matrix.as_ptr());
-                    }
 
+                 
                     // Bind the VAO and draw it
                     gl::BindVertexArray(node.vao_id);
                     gl::DrawElements(gl::TRIANGLES, node.index_count, gl::UNSIGNED_INT, ptr::null());
@@ -451,28 +434,22 @@ fn main() {
             matrix = glm::rotation(cam_rot_x, &glm::vec3(1.0, 0.0, 0.0)) * matrix;
             matrix = perspective * matrix;
 
-            //Spin the mainrotor and tail
-            helicopter_mainrotor_node.rotation.y = elapsed*9.0;
-            //DENNE ER LITT RAR
-            //helicopter_tailrotor_node.rotation.z = elapsed*5.0; 
-
+            
             //animated path
-            let toolbox: Heading = toolbox::simple_heading_animation(elapsed);
+            for j in 0..5{
+                let toolbox: Heading = toolbox::simple_heading_animation(elapsed + (j as f32 * 0.7));
 
-            helicopter_root_node.position.z = toolbox.z;
-            helicopter_root_node.rotation.x = toolbox.pitch;
-            helicopter_root_node.rotation.y = toolbox.yaw;
-            helicopter_root_node.rotation.z = toolbox.roll;
-            helicopter_root_node.position.x = toolbox.x;
+                helicopters[j].position.z = toolbox.z;
+                helicopters[j].rotation.x = toolbox.pitch;
+                helicopters[j].rotation.z = toolbox.roll;
+                helicopters[j].rotation.y = toolbox.yaw;
+                helicopters[j].position.x = toolbox.x;
 
-            // Apply the same transformations to the rotor nodes
-            // helicopter_mainrotor_node.position.x = toolbox.x;
-            // helicopter_mainrotor_node.position.z = toolbox.z;
-            // helicopter_tailrotor_node.position.x = toolbox.x;
-            // helicopter_tailrotor_node.position.z = toolbox.z;
+                //Spin the mainrotor and tail
+                helicopters[j].get_child(1).rotation.y = elapsed*9.0;
+                helicopters[j].get_child(2).rotation.y = elapsed*9.0;
 
-
-          
+            }
 
             unsafe {
                 // Clear the color and depth buffers
@@ -487,11 +464,11 @@ fn main() {
             
                 // == // Issue the necessary gl:: commands to draw your scene here
 
-                // bind and draw the terrain
+                // bind and draw the terrain 
                 gl::BindVertexArray(my_vao);
                 gl::DrawElements(gl::TRIANGLES, mesh.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
 
-                //bind and draw the parts of the helicopter
+                //bind and draw the parts of the helicopter Task 2 a
                 gl::BindVertexArray(vao_body);
                 gl::DrawElements(gl::TRIANGLES, helicopter.body.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
 
